@@ -1,7 +1,7 @@
 {
   "name": "@omega-infinity/ai-packager",
-  "version": "0.1.0",
-  "description": "CLI tool that bundles AI agent projects (agent-sdk based) into deployable packages for the OMEGA INFINITY ecosystem",
+  "version": "0.2.0",
+  "description": "CLI tool that bundles AI agent projects (agent-sdk based) into deployable packages for the OMEGA INFINITY ecosystem, with multi-user team workspaces",
   "main": "dist/index.js",
   "bin": {
     "omega-pack": "dist/cli.js"
@@ -11,7 +11,16 @@
     "start": "node dist/cli.js",
     "dev": "ts-node src/cli.ts"
   },
-  "keywords": ["omega-infinity", "ai-agent", "packager", "deployment", "monorepo"],
+  "keywords": [
+    "omega-infinity",
+    "ai-agent",
+    "packager",
+    "deployment",
+    "monorepo",
+    "multiuser",
+    "workspace",
+    "collaboration"
+  ],
   "author": "Rabiu Hamza",
   "license": "MIT",
   "dependencies": {
