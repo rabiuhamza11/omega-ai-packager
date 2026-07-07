@@ -1,6 +1,6 @@
 # OMEGA AI Packager (omega-pack)
 
-CLI to package, deploy, and now *collaborate* on OMEGA INFINITY AI agent projects.
+CLI to package, deploy, collaborate on, and observe OMEGA INFINITY AI agent projects.
 
 ## Install
 
@@ -18,34 +18,57 @@ omega-pack deploy            Deploy via DeployForge (GitHub, Vercel, Render, Net
 
 ## Multi-user Workspaces
 
-Teams can now share a single OMEGA workspace — invite teammates, share projects, and stay in sync, all from the CLI.
+Teams share a single OMEGA workspace — invite teammates, share projects, and stay in sync, all from the CLI.
 
 ```
-# Create a team workspace (you become the owner)
 omega-pack workspace create "Harz Team" you@example.com
-
-# Invite a teammate (roles: admin, member, viewer)
 omega-pack workspace invite teammate@example.com --role member
-
-# See who's in the workspace
 omega-pack workspace members
-
-# Attach a project so teammates can see it
 omega-pack workspace add-project my-agent-app --repo-url https://github.com/you/my-agent-app
-
-# Pull the latest shared state (members + projects)
 omega-pack workspace sync
-
-# Remove a teammate
 omega-pack workspace remove teammate@example.com
-
-# Switch to a different workspace by slug
 omega-pack workspace use harz-team
 ```
 
-Workspace state is stored centrally (backed by the OMEGA INFINITY platform API) so every team member's CLI stays in sync — no manual config sharing needed. Your active workspace is remembered locally in `~/.omega/workspace.json`.
+Roles: owner, admin, member, viewer. State is stored centrally and synced across the whole team; the active workspace is remembered locally in `~/.omega/workspace.json`.
 
-### Roles
+## Advanced RAG (retrieval)
+
+Index any project's docs/code and run fast retrieval queries — no external LLM/embedding API keys required. Uses text chunking (800 chars, 100 overlap), a hashed TF-IDF vector space model (256-dim), and hybrid keyword-boosted cosine ranking.
+
+```
+# Index a directory into a workspace project
+omega-pack rag index ./docs --workspace harz-team --project my-agent-app
+
+# Query it
+omega-pack rag query "how does billing work" --workspace harz-team --project my-agent-app --top-k 5
+
+# Check what's indexed
+omega-pack rag stats --workspace harz-team
+
+# Clear an index before re-indexing
+omega-pack rag clear --workspace harz-team --project my-agent-app
+```
+
+Retrieval results are raw ranked chunks — plug them into your own agent's prompt for full RAG-powered answers.
+
+## Observability (Sentry + Langfuse)
+
+Both are opt-in via environment variables — omega-pack works fully without them.
+
+```
+export SENTRY_DSN="https://xxx@xxx.ingest.sentry.io/xxx"
+export LANGFUSE_PUBLIC_KEY="pk-lf-..."
+export LANGFUSE_SECRET_KEY="sk-lf-..."
+export LANGFUSE_HOST="https://cloud.langfuse.com"   # optional, this is the default
+
+omega-pack observability   # shows current on/off status
+```
+
+- *Sentry*: every command (build, deploy, rag index/query) reports uncaught errors automatically.
+- *Langfuse*: every command run is traced as a span, so you get latency + success/failure history for your team's CLI usage.
+
+## Roles reference
 
 | Role   | Can invite/remove | Can add projects | Can view |
 |--------|--------------------|--------------------|----------|

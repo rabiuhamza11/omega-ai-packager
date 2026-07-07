@@ -1,7 +1,7 @@
 {
   "name": "@omega-infinity/ai-packager",
-  "version": "0.2.0",
-  "description": "CLI tool that bundles AI agent projects (agent-sdk based) into deployable packages for the OMEGA INFINITY ecosystem, with multi-user team workspaces",
+  "version": "0.3.0",
+  "description": "CLI tool that bundles AI agent projects (agent-sdk based) into deployable packages for the OMEGA INFINITY ecosystem, with multi-user team workspaces, advanced RAG retrieval, and built-in observability (Sentry + Langfuse)",
   "main": "dist/index.js",
   "bin": {
     "omega-pack": "dist/cli.js"
@@ -19,7 +19,12 @@
     "monorepo",
     "multiuser",
     "workspace",
-    "collaboration"
+    "collaboration",
+    "rag",
+    "retrieval",
+    "sentry",
+    "langfuse",
+    "observability"
   ],
   "author": "Rabiu Hamza",
   "license": "MIT",
@@ -27,7 +32,9 @@
     "archiver": "^7.0.1",
     "commander": "^12.0.0",
     "fs-extra": "^11.2.0",
-    "yaml": "^2.4.1"
+    "yaml": "^2.4.1",
+    "@sentry/node": "^8.9.2",
+    "langfuse": "^3.29.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
