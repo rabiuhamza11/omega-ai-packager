@@ -5,10 +5,19 @@ import * as fs from 'fs-extra';
 import { loadManifest, scaffoldManifest } from './manifest';
 import { packageAgent } from './packager';
 import { deployPackage } from './deploy';
+import {
+  workspaceCreate,
+  workspaceInvite,
+  workspaceMembers,
+  workspaceRemove,
+  workspaceAddProject,
+  workspaceSync,
+  workspaceUse,
+} from './workspace';
 
 const program = new Command();
 
-program.name('omega-pack').description('CLI to package and deploy OMEGA INFINITY AI agents').version('0.1.0');
+program.name('omega-pack').description('CLI to package and deploy OMEGA INFINITY AI agents').version('0.2.0');
 
 program.command('init').description('Scaffold an omega.agent.yml manifest').argument('<name>', 'Agent name').action((name: string) => {
   const manifestPath = scaffoldManifest(process.cwd(), name);
@@ -44,6 +53,116 @@ program.command('deploy').description('Deploy a packaged agent via DeployForge')
     const files = filePaths.map((p) => ({ path: path.relative(opts.source, p), content: fs.readFileSync(p, 'utf-8') }));
     const result = await deployPackage({ baseUrl: opts.baseUrl }, manifest.name, files, targets as any);
     console.log('Deployment result:', JSON.stringify(result, null, 2));
+  });
+
+// ===== Multi-user Workspace commands =====
+const workspace = program.command('workspace').description('Collaborate with your team in a shared OMEGA workspace');
+
+workspace.command('create').description('Create a new team workspace')
+  .argument('<name>', 'Workspace name')
+  .argument('<owner-email>', 'Your email (becomes the owner)')
+  .option('-u, --base-url <url>', 'DeployForge functions base URL')
+  .option('-p, --plan <plan>', 'Plan: free, team, enterprise', 'free')
+  .action(async (name, ownerEmail, opts) => {
+    try {
+      const ws = await workspaceCreate(name, ownerEmail, opts);
+      console.log(`Workspace created: ${ws.name} (slug: ${ws.slug})`);
+      console.log(`Owner: ${ws.owner_email}`);
+      console.log('This workspace is now active locally. Invite teammates with: omega-pack workspace invite <email>');
+    } catch (err: any) {
+      console.error('Failed to create workspace:', err.message);
+      process.exit(1);
+    }
+  });
+
+workspace.command('invite').description('Invite a teammate to the active workspace')
+  .argument('<email>', 'Teammate email')
+  .option('-r, --role <role>', 'Role: admin, member, viewer', 'member')
+  .option('-s, --slug <slug>', 'Workspace slug (overrides active workspace)')
+  .option('-u, --base-url <url>', 'DeployForge functions base URL')
+  .action(async (email, opts) => {
+    try {
+      const result = await workspaceInvite(email, opts.role, opts);
+      console.log(result.message);
+    } catch (err: any) {
+      console.error('Failed to invite:', err.message);
+      process.exit(1);
+    }
+  });
+
+workspace.command('remove').description('Remove a teammate from the active workspace')
+  .argument('<email>', 'Teammate email')
+  .option('-s, --slug <slug>', 'Workspace slug')
+  .option('-u, --base-url <url>', 'DeployForge functions base URL')
+  .action(async (email, opts) => {
+    try {
+      const result = await workspaceRemove(email, opts);
+      console.log(result.message);
+    } catch (err: any) {
+      console.error('Failed to remove member:', err.message);
+      process.exit(1);
+    }
+  });
+
+workspace.command('members').description('List members of the active workspace')
+  .option('-s, --slug <slug>', 'Workspace slug')
+  .option('-u, --base-url <url>', 'DeployForge functions base URL')
+  .action(async (opts) => {
+    try {
+      const members = await workspaceMembers(opts);
+      console.log(`Members (${members.length}):`);
+      for (const m of members) {
+        console.log(`  ${m.email} — ${m.role}`);
+      }
+    } catch (err: any) {
+      console.error('Failed to list members:', err.message);
+      process.exit(1);
+    }
+  });
+
+workspace.command('add-project').description('Attach a project to the active workspace so teammates can see it')
+  .argument('<project-name>', 'Project name')
+  .option('-r, --repo-url <url>', 'GitHub repo URL', '')
+  .option('-a, --added-by <email>', 'Your email', '')
+  .option('-s, --slug <slug>', 'Workspace slug')
+  .option('-u, --base-url <url>', 'DeployForge functions base URL')
+  .action(async (projectName, opts) => {
+    try {
+      const result = await workspaceAddProject(projectName, opts.repoUrl, opts.addedBy, opts);
+      console.log(`Project "${projectName}" added to workspace. Total shared projects: ${result.projects.length}`);
+    } catch (err: any) {
+      console.error('Failed to add project:', err.message);
+      process.exit(1);
+    }
+  });
+
+workspace.command('sync').description('Pull the latest workspace state (members + shared projects)')
+  .option('-s, --slug <slug>', 'Workspace slug')
+  .option('-u, --base-url <url>', 'DeployForge functions base URL')
+  .action(async (opts) => {
+    try {
+      const ws = await workspaceSync(opts);
+      console.log(`Workspace: ${ws.name} (${ws.plan})`);
+      console.log(`Members: ${ws.members.map((m: any) => `${m.email}(${m.role})`).join(', ')}`);
+      console.log(`Shared projects: ${ws.projects.map((p: any) => p.project_name).join(', ') || 'none yet'}`);
+      console.log(`Synced at: ${ws.synced_at}`);
+    } catch (err: any) {
+      console.error('Failed to sync:', err.message);
+      process.exit(1);
+    }
+  });
+
+workspace.command('use').description('Switch the active local workspace by slug')
+  .argument('<slug>', 'Workspace slug')
+  .option('-u, --base-url <url>', 'DeployForge functions base URL')
+  .action(async (slug, opts) => {
+    try {
+      const ws = await workspaceUse(slug, opts);
+      console.log(`Now using workspace: ${ws.name} (${ws.slug})`);
+    } catch (err: any) {
+      console.error('Failed to switch workspace:', err.message);
+      process.exit(1);
+    }
   });
 
 async function collectFiles(dir: string): Promise<string[]> {
