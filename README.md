@@ -1,6 +1,6 @@
 # OMEGA AI Packager (omega-pack)
 
-CLI to package, deploy, collaborate on, and observe OMEGA INFINITY AI agent projects.
+CLI to package, deploy, collaborate on, and retrieve knowledge from OMEGA INFINITY AI agent projects.
 
 ## Install
 
@@ -18,7 +18,7 @@ omega-pack deploy            Deploy via DeployForge (GitHub, Vercel, Render, Net
 
 ## Multi-user Workspaces
 
-Teams share a single OMEGA workspace — invite teammates, share projects, and stay in sync, all from the CLI.
+Teams share a single OMEGA workspace — invite teammates, share projects, stay in sync from the CLI.
 
 ```
 omega-pack workspace create "Harz Team" you@example.com
@@ -30,34 +30,35 @@ omega-pack workspace remove teammate@example.com
 omega-pack workspace use harz-team
 ```
 
-Roles: owner, admin, member, viewer. State is stored centrally and synced across the whole team; the active workspace is remembered locally in `~/.omega/workspace.json`.
+Roles: owner, admin (can invite/remove + add projects), member (can add projects), viewer (read-only).
+Active workspace is remembered locally in `~/.omega/workspace.json`.
 
-## Advanced RAG (retrieval)
+## Advanced RAG (retrieval over your own project)
 
-Index any project's docs/code and run fast retrieval queries — no external LLM/embedding API keys required. Uses text chunking (800 chars, 100 overlap), a hashed TF-IDF vector space model (256-dim), and hybrid keyword-boosted cosine ranking.
+Index a project's docs/code, then run retrieval queries against it. Uses chunking (800 chars, 100 overlap) + a hashed TF-IDF vector space model + hybrid keyword-boosted cosine ranking — fully self-contained, no external embedding API required.
 
 ```
-# Index a directory into a workspace project
-omega-pack rag index ./docs --workspace harz-team --project my-agent-app
+# Index a directory (.md, .txt, .ts, .tsx, .js, .jsx, .json, .yml, .yaml)
+omega-pack rag index ./src --workspace harz-team --project my-agent-app
 
 # Query it
-omega-pack rag query "how does billing work" --workspace harz-team --project my-agent-app --top-k 5
+omega-pack rag query "how does the deploy pipeline work" --workspace harz-team --project my-agent-app --top-k 5
 
-# Check what's indexed
+# See what's indexed
 omega-pack rag stats --workspace harz-team
 
-# Clear an index before re-indexing
+# Wipe an index to re-index cleanly
 omega-pack rag clear --workspace harz-team --project my-agent-app
 ```
 
-Retrieval results are raw ranked chunks — plug them into your own agent's prompt for full RAG-powered answers.
+RAG data is workspace-scoped, so team members querying the same workspace/project see the same index.
 
-## Observability (Sentry + Langfuse)
+## Observability: Sentry + Langfuse
 
-Both are opt-in via environment variables — omega-pack works fully without them.
+Both are opt-in via environment variables — nothing is sent anywhere unless configured.
 
 ```
-export SENTRY_DSN="https://xxx@xxx.ingest.sentry.io/xxx"
+export SENTRY_DSN="https://xxxx@oyyyy.ingest.sentry.io/zzzz"
 export LANGFUSE_PUBLIC_KEY="pk-lf-..."
 export LANGFUSE_SECRET_KEY="sk-lf-..."
 export LANGFUSE_HOST="https://cloud.langfuse.com"   # optional, this is the default
@@ -65,17 +66,9 @@ export LANGFUSE_HOST="https://cloud.langfuse.com"   # optional, this is the defa
 omega-pack observability   # shows current on/off status
 ```
 
-- *Sentry*: every command (build, deploy, rag index/query) reports uncaught errors automatically.
-- *Langfuse*: every command run is traced as a span, so you get latency + success/failure history for your team's CLI usage.
-
-## Roles reference
-
-| Role   | Can invite/remove | Can add projects | Can view |
-|--------|--------------------|--------------------|----------|
-| owner  | yes | yes | yes |
-| admin  | yes | yes | yes |
-| member | no  | yes | yes |
-| viewer | no  | no  | yes |
+When configured:
+- Sentry captures exceptions from any CLI command (build, deploy, rag index/query) with command + metadata context.
+- Langfuse traces every `build`, `deploy`, `rag index`, and `rag query` run as a trace + span, so you can see latency, success/failure, and inputs across your team's CLI usage over time.
 
 ## Ecosystem
 

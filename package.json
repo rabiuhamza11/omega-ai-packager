@@ -1,7 +1,7 @@
 {
   "name": "@omega-infinity/ai-packager",
   "version": "0.3.0",
-  "description": "CLI tool that bundles AI agent projects (agent-sdk based) into deployable packages for the OMEGA INFINITY ecosystem, with multi-user team workspaces, advanced RAG retrieval, and built-in observability (Sentry + Langfuse)",
+  "description": "CLI tool that bundles AI agent projects (agent-sdk based) into deployable packages for the OMEGA INFINITY ecosystem, with multi-user team workspaces, advanced RAG retrieval, and built-in Sentry/Langfuse observability",
   "main": "dist/index.js",
   "bin": {
     "omega-pack": "dist/cli.js"
