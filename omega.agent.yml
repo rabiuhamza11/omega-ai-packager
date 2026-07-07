@@ -1,0 +1,12 @@
+name: omega-ai-packager
+version: 0.1.0
+role: DevOps
+entryPoint: src/cli.ts
+dependencies: []
+env: {}
+targets:
+  - github
+  - vercel
+  - render
+  - netlify
+  - railway
