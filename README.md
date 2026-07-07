@@ -1,6 +1,6 @@
 # OMEGA AI Packager (omega-pack)
 
-CLI to package, deploy, collaborate on, and retrieve knowledge from OMEGA INFINITY AI agent projects.
+CLI to package, deploy, and collaborate on OMEGA INFINITY AI agent projects — now with team workspaces, retrieval-augmented search over your codebase/docs, and built-in observability.
 
 ## Install
 
@@ -18,8 +18,6 @@ omega-pack deploy            Deploy via DeployForge (GitHub, Vercel, Render, Net
 
 ## Multi-user Workspaces
 
-Teams share a single OMEGA workspace — invite teammates, share projects, stay in sync from the CLI.
-
 ```
 omega-pack workspace create "Harz Team" you@example.com
 omega-pack workspace invite teammate@example.com --role member
@@ -30,45 +28,53 @@ omega-pack workspace remove teammate@example.com
 omega-pack workspace use harz-team
 ```
 
-Roles: owner, admin (can invite/remove + add projects), member (can add projects), viewer (read-only).
-Active workspace is remembered locally in `~/.omega/workspace.json`.
+Workspace state is stored centrally and shared across your team's CLIs. Active workspace is remembered locally in `~/.omega/workspace.json`.
 
-## Advanced RAG (retrieval over your own project)
+| Role   | Can invite/remove | Can add projects | Can view |
+|--------|--------------------|--------------------|----------|
+| owner  | yes | yes | yes |
+| admin  | yes | yes | yes |
+| member | no  | yes | yes |
+| viewer | no  | no  | yes |
 
-Index a project's docs/code, then run retrieval queries against it. Uses chunking (800 chars, 100 overlap) + a hashed TF-IDF vector space model + hybrid keyword-boosted cosine ranking — fully self-contained, no external embedding API required.
+## Advanced RAG (retrieval over your project)
+
+Index your project's docs and code, then run semantic + keyword hybrid search over it — no external embedding API required (self-contained hashed TF-IDF vectorization with cosine similarity, boosted by exact keyword overlap).
 
 ```
-# Index a directory (.md, .txt, .ts, .tsx, .js, .jsx, .json, .yml, .yaml)
-omega-pack rag index ./src --workspace harz-team --project my-agent-app
+# Index a directory (walks .md .txt .ts .tsx .js .jsx .json .yml .yaml)
+omega-pack rag index ./docs --workspace harz-team --project my-agent-app
 
 # Query it
-omega-pack rag query "how does the deploy pipeline work" --workspace harz-team --project my-agent-app --top-k 5
+omega-pack rag query "how does billing work" --workspace harz-team --project my-agent-app --top-k 5
 
-# See what's indexed
+# Check what's indexed
 omega-pack rag stats --workspace harz-team
 
-# Wipe an index to re-index cleanly
+# Wipe an index before re-indexing
 omega-pack rag clear --workspace harz-team --project my-agent-app
 ```
 
-RAG data is workspace-scoped, so team members querying the same workspace/project see the same index.
+Retrieval results are raw ranked chunks (source file, position, score) — feed them into your own LLM prompt for answer synthesis, or read them directly.
 
-## Observability: Sentry + Langfuse
+## Observability (Sentry + Langfuse)
 
-Both are opt-in via environment variables — nothing is sent anywhere unless configured.
+Both are opt-in via environment variables — omega-pack works fine with neither set.
 
 ```
-export SENTRY_DSN="https://xxxx@oyyyy.ingest.sentry.io/zzzz"
-export LANGFUSE_PUBLIC_KEY="pk-lf-..."
+export SENTRY_DSN="https://xxxx@sentry.io/xxxx"        # error tracking for CLI commands
+export LANGFUSE_PUBLIC_KEY="pk-lf-..."                   # tracing for build/deploy/rag commands
 export LANGFUSE_SECRET_KEY="sk-lf-..."
-export LANGFUSE_HOST="https://cloud.langfuse.com"   # optional, this is the default
-
-omega-pack observability   # shows current on/off status
+export LANGFUSE_HOST="https://cloud.langfuse.com"        # optional, self-hosted supported
 ```
 
-When configured:
-- Sentry captures exceptions from any CLI command (build, deploy, rag index/query) with command + metadata context.
-- Langfuse traces every `build`, `deploy`, `rag index`, and `rag query` run as a trace + span, so you can see latency, success/failure, and inputs across your team's CLI usage over time.
+Check current status:
+
+```
+omega-pack observability
+```
+
+Every `build`, `deploy`, `rag index`, and `rag query` run is wrapped in a Langfuse trace (input/output/timing) when configured, and any failure is reported to Sentry with command context.
 
 ## Ecosystem
 
