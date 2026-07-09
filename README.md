@@ -1,24 +1,45 @@
-# OMEGA AI Packager (omega-pack)
+# OMEGA AI Packager (`omega-pack`)
 
-CLI to package, deploy, and collaborate on OMEGA INFINITY AI agent projects — now with team workspaces, retrieval-augmented search over your codebase/docs, and built-in observability.
+**Ship AI agent projects like software, not scripts.** Package, deploy, collaborate, and search your codebase — all from one CLI, with zero external API dependencies required to get started.
+
+[![npm version](https://img.shields.io/badge/npm-%40omega--infinity%2Fai--packager-blue)](https://www.npmjs.com/package/@omega-infinity/ai-packager)
+[![Release](https://img.shields.io/badge/release-v0.3.0-brightgreen)](https://github.com/rabiuhamza11/omega-ai-packager/releases)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-54.5%25-3178c6)](#)
+
+---
+
+## Why omega-pack?
+
+Building an AI agent is easy. **Shipping, versioning, and collaborating on one** is where most projects fall apart. `omega-pack` gives you a single manifest format (`omega.agent.yml`) and one CLI to go from prototype to production:
+
+- 📦 **Package** any agent project into a deployable archive
+- 🚀 **Deploy** anywhere — GitHub, Vercel, Render, Netlify, Railway — via DeployForge
+- 👥 **Collaborate** with real multi-user workspaces and role-based access
+- 🔍 **Search your own codebase** with built-in hybrid RAG — no OpenAI key required
+- 🩺 **Observe** every command with optional Sentry + Langfuse tracing
 
 ## Install
 
-```
+```bash
 npm install -g @omega-infinity/ai-packager
 ```
 
-## Core commands
+## Quickstart
 
+```bash
+omega-pack init my-agent          # scaffold an omega.agent.yml manifest
+omega-pack build                  # package the agent into a .zip archive
+omega-pack deploy                 # deploy via DeployForge (GitHub, Vercel, Render, Netlify, Railway)
 ```
-omega-pack init <name>       Scaffold an omega.agent.yml manifest
-omega-pack build             Package the agent into a .zip archive
-omega-pack deploy            Deploy via DeployForge (GitHub, Vercel, Render, Netlify, Railway)
-```
+
+That's it — three commands from idea to a live deployment.
 
 ## Multi-user Workspaces
 
-```
+Real team collaboration, not just a local config file:
+
+```bash
 omega-pack workspace create "Harz Team" you@example.com
 omega-pack workspace invite teammate@example.com --role member
 omega-pack workspace members
@@ -28,7 +49,7 @@ omega-pack workspace remove teammate@example.com
 omega-pack workspace use harz-team
 ```
 
-Workspace state is stored centrally and shared across your team's CLIs. Active workspace is remembered locally in `~/.omega/workspace.json`.
+Workspace state is stored centrally and shared across your team's CLIs. The active workspace is remembered locally in `~/.omega/workspace.json`.
 
 | Role   | Can invite/remove | Can add projects | Can view |
 |--------|--------------------|--------------------|----------|
@@ -37,11 +58,11 @@ Workspace state is stored centrally and shared across your team's CLIs. Active w
 | member | no  | yes | yes |
 | viewer | no  | no  | yes |
 
-## Advanced RAG (retrieval over your project)
+## Advanced RAG — search your own project
 
-Index your project's docs and code, then run semantic + keyword hybrid search over it — no external embedding API required (self-contained hashed TF-IDF vectorization with cosine similarity, boosted by exact keyword overlap).
+Index your docs and code, then run semantic + keyword hybrid search over them. No external embedding API needed — it uses a self-contained hashed TF-IDF vectorizer with cosine similarity, boosted by exact keyword overlap.
 
-```
+```bash
 # Index a directory (walks .md .txt .ts .tsx .js .jsx .json .yml .yaml)
 omega-pack rag index ./docs --workspace harz-team --project my-agent-app
 
@@ -59,18 +80,18 @@ Retrieval results are raw ranked chunks (source file, position, score) — feed 
 
 ## Observability (Sentry + Langfuse)
 
-Both are opt-in via environment variables — omega-pack works fine with neither set.
+Both are opt-in via environment variables — `omega-pack` works fine with neither set.
 
-```
+```bash
 export SENTRY_DSN="https://xxxx@sentry.io/xxxx"        # error tracking for CLI commands
-export LANGFUSE_PUBLIC_KEY="pk-lf-..."                   # tracing for build/deploy/rag commands
+export LANGFUSE_PUBLIC_KEY="pk-lf-..."                  # tracing for build/deploy/rag commands
 export LANGFUSE_SECRET_KEY="sk-lf-..."
-export LANGFUSE_HOST="https://cloud.langfuse.com"        # optional, self-hosted supported
+export LANGFUSE_HOST="https://cloud.langfuse.com"       # optional, self-hosted supported
 ```
 
 Check current status:
 
-```
+```bash
 omega-pack observability
 ```
 
@@ -78,4 +99,8 @@ Every `build`, `deploy`, `rag index`, and `rag query` run is wrapped in a Langfu
 
 ## Ecosystem
 
-Part of the Harz Ecosystem — see the master index for all live projects and docs.
+Part of the **Harz Ecosystem** — see the [master index](https://github.com/rabiuhamza11) for all live projects and docs.
+
+## Contributing
+
+Issues and PRs welcome. This is an actively maintained project — star it if you find it useful, it genuinely helps others discover it.
