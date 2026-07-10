@@ -1,0 +1,89 @@
+# HarzDM Marketplace — omega-pack agent manifest
+# Deploy a full digital marketplace with multi-seller support
+# powered by the Harz ecosystem backend
+
+name: harzdm-marketplace
+version: "1.0.0"
+description: "Global digital product marketplace with multi-seller support, Stripe payments, and instant delivery"
+author: "Harzco <harzco.business@gmail.com>"
+license: MIT
+
+agent:
+  type: marketplace
+  runtime: base44
+  framework: static-html
+
+deploy:
+  targets:
+    - vercel
+    - github
+  vercel:
+    alias: harzdm-shop.vercel.app
+    framework: null
+    output_dir: "."
+  github:
+    repo: rabiuhamza11/harzdm-marketplace
+    branch: main
+
+backend:
+  provider: base44
+  functions:
+    - name: harzDM
+      description: "Main marketplace homepage (SSR)"
+      endpoint: /functions/harzDM
+    - name: harzDMCatalog
+      description: "Product catalog API (CORS-enabled)"
+      endpoint: /functions/harzDMCatalog
+    - name: harzDMCheckout
+      description: "Stripe checkout session creator"
+      endpoint: /functions/harzDMCheckout
+    - name: harzDMWebhook
+      description: "Post-payment order fulfillment"
+      endpoint: /functions/harzDMWebhook
+    - name: harzDMSellerSignup
+      description: "Seller onboarding form"
+      endpoint: /functions/harzDMSellerSignup
+    - name: harzDMDashboard
+      description: "Seller analytics dashboard"
+      endpoint: /functions/harzDMDashboard
+
+database:
+  provider: base44
+  entities:
+    - name: Product
+      fields: [title, description, category, price, currency, seller_name, seller_email, file_url, image_url, status, sales_count, rating]
+    - name: Seller
+      fields: [store_name, owner_name, email, country, total_sales, total_revenue, payout_method, status]
+    - name: Order
+      fields: [product_id, product_title, buyer_email, buyer_name, amount, currency, seller_email, payment_status, stripe_session_id, download_url]
+
+payments:
+  provider: stripe
+  mode: test
+  revenue_split: "90/10 (seller/platform)"
+  currencies: [usd]
+
+features:
+  - "19+ digital products across 8 categories"
+  - "Multi-seller storefronts"
+  - "Instant Stripe checkout"
+  - "90% revenue to sellers, 0 listing fees"
+  - "Instant digital delivery post-payment"
+  - "Search + category filtering"
+  - "Seller analytics dashboard"
+
+categories:
+  - Ebook
+  - Course
+  - Template
+  - Software
+  - Music
+  - AIPrompt
+  - Photo
+  - Plugin
+
+live_urls:
+  marketplace: https://harzdm-shop.vercel.app
+  catalog_api: https://superagent-2286fb2f.base44.app/functions/harzDMCatalog
+  seller_signup: https://superagent-2286fb2f.base44.app/functions/harzDMSellerSignup
+  github: https://github.com/rabiuhamza11/harzdm-marketplace
