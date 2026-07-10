@@ -33,8 +33,6 @@ omega-pack build                  # package the agent into a .zip archive
 omega-pack deploy                 # deploy via DeployForge (GitHub, Vercel, Render, Netlify, Railway)
 ```
 
-That's it — three commands from idea to a live deployment.
-
 ## Multi-user Workspaces
 
 Real team collaboration, not just a local config file:
@@ -43,64 +41,62 @@ Real team collaboration, not just a local config file:
 omega-pack workspace create "Harz Team" you@example.com
 omega-pack workspace invite teammate@example.com --role member
 omega-pack workspace members
-omega-pack workspace add-project my-agent-app --repo-url https://github.com/you/my-agent-app
-omega-pack workspace sync
-omega-pack workspace remove teammate@example.com
-omega-pack workspace use harz-team
+omega-pack workspace add-project my-agent-app --repo-url https://github.com/you/project
 ```
 
-Workspace state is stored centrally and shared across your team's CLIs. The active workspace is remembered locally in `~/.omega/workspace.json`.
+## Hybrid RAG Search
 
-| Role   | Can invite/remove | Can add projects | Can view |
-|--------|--------------------|--------------------|----------|
-| owner  | yes | yes | yes |
-| admin  | yes | yes | yes |
-| member | no  | yes | yes |
-| viewer | no  | no  | yes |
-
-## Advanced RAG — search your own project
-
-Index your docs and code, then run semantic + keyword hybrid search over them. No external embedding API needed — it uses a self-contained hashed TF-IDF vectorizer with cosine similarity, boosted by exact keyword overlap.
+Search your entire codebase instantly — no embedding API or vector database required:
 
 ```bash
-# Index a directory (walks .md .txt .ts .tsx .js .jsx .json .yml .yaml)
-omega-pack rag index ./docs --workspace harz-team --project my-agent-app
-
-# Query it
-omega-pack rag query "how does billing work" --workspace harz-team --project my-agent-app --top-k 5
-
-# Check what's indexed
-omega-pack rag stats --workspace harz-team
-
-# Wipe an index before re-indexing
-omega-pack rag clear --workspace harz-team --project my-agent-app
+omega-pack rag index ./src          # index your source files
+omega-pack rag search "auth flow"   # keyword + semantic search
 ```
 
-Retrieval results are raw ranked chunks (source file, position, score) — feed them into your own LLM prompt for answer synthesis, or read them directly.
+## Observability
 
-## Observability (Sentry + Langfuse)
-
-Both are opt-in via environment variables — `omega-pack` works fine with neither set.
+Optional Sentry + Langfuse tracing — zero config to start, full telemetry when you need it:
 
 ```bash
-export SENTRY_DSN="https://xxxx@sentry.io/xxxx"        # error tracking for CLI commands
-export LANGFUSE_PUBLIC_KEY="pk-lf-..."                  # tracing for build/deploy/rag commands
-export LANGFUSE_SECRET_KEY="sk-lf-..."
-export LANGFUSE_HOST="https://cloud.langfuse.com"       # optional, self-hosted supported
+SENTRY_DSN=your-dsn LANGFUSE_PUBLIC_KEY=your-key omega-pack deploy
 ```
 
-Check current status:
+## Ecosystem Examples
+
+Ready-to-deploy agent projects built with omega-pack:
+
+| Project | Description | Live URL |
+|---|---|---|
+| **HarzDM** | Global digital marketplace — multi-seller, Stripe payments | [harzdm-shop.vercel.app](https://harzdm-shop.vercel.app) |
+| **TradeOS** | AI trading platform with live Kraken market data | [tradeos.vercel.app](https://tradeos.vercel.app) |
+| **BuildBot AI** | AI construction planner for Nigeria | [Base44 hosted] |
+| **DeployForge** | Multi-cloud deployment engine | [GitHub](https://github.com/rabiuhamza11/deployforge) |
+
+### Deploy HarzDM Marketplace with omega-pack
 
 ```bash
-omega-pack observability
+# Use the included example manifest
+omega-pack deploy --from examples/harzdm/omega.agent.yml --target vercel --target github
 ```
 
-Every `build`, `deploy`, `rag index`, and `rag query` run is wrapped in a Langfuse trace (input/output/timing) when configured, and any failure is reported to Sentry with command context.
+Or use the TypeScript integration client in your own project:
 
-## Ecosystem
+```typescript
+import { HarzDMClient } from '@omega-infinity/ai-packager/integrations/harzdm';
 
-Part of the **Harz Ecosystem** — see the [master index](https://github.com/rabiuhamza11) for all live projects and docs.
+// Fetch all products
+const { products } = await HarzDMClient.getCatalog();
 
-## Contributing
+// Create a checkout session
+const { checkout_url } = await HarzDMClient.checkout({
+  product_id: 'your-product-id',
+  buyer_email: 'buyer@example.com',
+  buyer_name: 'Jane Doe',
+});
 
-Issues and PRs welcome. This is an actively maintained project — star it if you find it useful, it genuinely helps others discover it.
+window.location.href = checkout_url; // redirect to Stripe
+```
+
+## License
+
+MIT © Harzco — Rabiu Hamza Mohammed
